@@ -39,3 +39,8 @@
 
 # debug information files
 *.dwo
+
+
+# Project Specific
+*.zip
+/[Ss]FML-3.0.0/

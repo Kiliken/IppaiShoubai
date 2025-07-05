@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "span": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp"
+    }
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/SFML-3.0.0/include"
+    ]
+}
