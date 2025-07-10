@@ -1,6 +1,7 @@
-
+#include <iostream>
  #include <SFML/Graphics.hpp>
 
+enum directions { down, right, up, left };
 int main()
 {
     unsigned int windowWidth = 640;
@@ -8,29 +9,25 @@ int main()
     sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode({windowWidth, windowHeight}), "SFML Test");
     window->setFramerateLimit(60);
 
-    // sf::CircleShape shape(200.f);
-    // shape.setFillColor(sf::Color::Green);
-    // shape.setOrigin(shape.getGeometricCenter());
-    // //shape.setPointCount(5);
-    // shape.setPosition({0.0f, 0.0f});
+    sf::Texture texture;
+    if(!texture.loadFromFile("Sprites/ExampleSprite.png")){
+        std::cerr << "ERROR::COULD NOT LOAD FILE::Sprites/ExampleSprite.png" << std::endl;
+		return -1;
+    }
+    sf::Sprite sprite(texture);
 
-    // sf::CircleShape shape1(200.f);
-    // shape1.setFillColor(sf::Color::Yellow);
-    // shape1.setOrigin(shape1.getGeometricCenter());
-    // //shape1.setPointCount(5);
-    // shape1.setPosition({windowWidth * 1.0f, windowHeight * 1.0f});
+    sf::IntRect dir[4];
+    for (int i = 0; i < 4; i++)
+    {
+        dir[i] = sf::IntRect({32 * i, 0}, {32, 32});
+    }
 
-    sf::VertexArray triangle(sf::PrimitiveType::Triangles, 3);
+    sprite.setTextureRect(dir[down]);
+    sprite.setOrigin({16, 16});
+    sprite.setPosition({windowWidth / 2.0f, windowHeight / 2.0f});
 
-    // define the position of the triangle's points
-    triangle[0].position = sf::Vector2f(50.f, 10.f);
-    triangle[1].position = sf::Vector2f(10.f, 100.f);
-    triangle[2].position = sf::Vector2f(100.f, 100.f);
+    
 
-    // define the color of the triangle's points
-    triangle[0].color = sf::Color::Red;
-    triangle[1].color = sf::Color::Blue;
-    triangle[2].color = sf::Color::Green;
 
     while (window->isOpen())
     {
@@ -40,24 +37,33 @@ int main()
                 window->close();
         }
 
-        // //shape.rotate(sf::degrees(1.0f));
-        // shape.move({1.0f, 1.0f});
-        // //shape1.rotate(sf::degrees(-1.0f));
-        // shape1.move({-1.0f, -1.0f});
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::S)) {
 
-        // shape.setFillColor(sf::Color::Green);
-        // shape1.setFillColor(sf::Color::Yellow);
+			sprite.move({ 0.0f, 1.0f });
+			sprite.setTextureRect(dir[down]);
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::W)) {
 
-        // if(shape.getGlobalBounds().findIntersection(shape1.getGlobalBounds())){
-        //     shape.setFillColor(sf::Color::Red);
-        //     shape1.setFillColor(sf::Color::Red);
-        // }
+			sprite.move({ 0.0f, -1.0f });
+			sprite.setTextureRect(dir[up]);
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::D)) {
 
+			sprite.move({ 1.0f, 0.0f });
+			sprite.setTextureRect(dir[right]);
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::A)) {
 
+			sprite.move({ -1.0f, 0.0f });
+			sprite.setTextureRect(dir[left]);
+		}
+
+        // render
         window->clear();
-        // window->draw(shape);
-        // window->draw(shape1);
-        window->draw(triangle);
+
+        // draw
+        window->draw(sprite);
+        
         window->display();
     }
 }
