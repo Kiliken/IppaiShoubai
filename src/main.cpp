@@ -10,6 +10,19 @@ struct Item {
     sf::Sprite  *sprite;
     sf::String  name;
     int         price;
+    char        tag;
+    // tags : s(shopItem) i(inventoryItem)
+
+    Item Clone() {
+        Item newItem;
+        newItem.texture = this->texture;
+        newItem.sprite = new sf::Sprite(*newItem.texture);
+        newItem.price = this->price;
+        newItem.name = this->name;
+        newItem.tag = this->tag;
+
+        return newItem;
+    }
 };
 
 std::vector<Item> DeclareItems() {
@@ -18,10 +31,12 @@ std::vector<Item> DeclareItems() {
     Item bow;
 
 
-    bow.texture = new sf::Texture("../assets/bow.png");
+    bow.texture = new sf::Texture();
+    bow.texture->loadFromFile("../assets/bow.png");
     bow.sprite = new sf::Sprite(*bow.texture);
     bow.name = "Bow";
     bow.price = 10;
+    bow.tag = 's';
 
     items.push_back(bow);
 
@@ -46,19 +61,21 @@ int main()
     int money = 100;
     bool mouseLeftDown = false;
 
-    sf::RenderWindow window(sf::VideoMode({1280, 720}), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode({1280, 720}), "Ippai Shoubai");
     window.setMouseCursorVisible(false);
     window.setFramerateLimit(60);
+    //const sf::Image gameIcon("../assets/cursor.png");
+    //window.setIcon(gameIcon);
 
     sf::CircleShape shape(100.f);
     shape.setFillColor(sf::Color::Red);
 
     std::vector<Item> inventory;
     sf::Vector2f inventoryPos[12] = {
-        {900.f,300.f},{500.f,400.f},{0.f,0.f},
-        {0.f,0.f},{0.f,0.f},{0.f,0.f},
-        {0.f,0.f},{0.f,0.f},{0.f,0.f},
-        {0.f,0.f},{0.f,0.f},{0.f,0.f},
+        {925.f,275.f},{1025.f,275.f},{1125.f,275.f},
+        {925.f,375.f},{1025.f,375.f},{1125.f,375.f},
+        {925.f,475.f},{1025.f,475.f},{1125.f,475.f},
+        {925.f,575.f},{1025.f,575.f},{1125.f,575.f},
     };
 
     const sf::Texture cursorText("../assets/cursor.png");
@@ -79,8 +96,7 @@ int main()
         
     }
             
-    
-
+    Item itemClicked;
 
     while (window.isOpen())
     {
@@ -90,8 +106,22 @@ int main()
                 window.close();
 
             if (event->is<sf::Event::MouseButtonPressed>()){
-                Item itemClicked = InteractWith(items,cursorSprite);
-                inventory.push_back(itemClicked);
+                itemClicked = InteractWith(items,cursorSprite).Clone();
+
+                if(inventory.size() < 12 && money > itemClicked.price && itemClicked.tag == 's') {
+                    itemClicked.tag = 'i';
+                    money -= itemClicked.price;
+                    inventory.push_back(itemClicked);
+                    std::cout << money << std::endl;
+                }
+
+                //itemClicked = InteractWith(inventory,cursorSprite);
+                
+                //if(itemClicked.tag == 'i'){
+                    //money += itemClicked.price;
+                    //inventory.pop_back();
+                //}
+                
             }
         }
 
@@ -105,11 +135,14 @@ int main()
 
         window.clear();
         window.draw(bgSprite);
-        window.draw(shape);
+        //window.draw(shape);
         
 
         for(int i = 0; i < items.size(); i++)
             window.draw(*items[i].sprite);
+
+        for(int i = 0; i < inventory.size(); i++)
+            window.draw(*inventory[i].sprite);
 
         window.draw(cursorSprite);
         
