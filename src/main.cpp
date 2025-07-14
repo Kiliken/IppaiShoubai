@@ -30,79 +30,55 @@ struct Item {
 
 std::vector<Item> DeclareItems() {
     std::vector<Item> items;
+    std::vector<Item> itemPull;
 
-    Item item;
+    Item Bow;
 
+    Bow.texture = new sf::Texture();
+    Bow.texture->loadFromFile("../assets/bow.png");
+    Bow.sprite = new sf::Sprite(*Bow.texture);
+    Bow.name = "Bow";
+    Bow.price = 10;
+    Bow.tag = 's';
 
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/bow.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Bow";
-    item.price = 10;
-    item.tag = 's';
+    itemPull.push_back(Bow);
 
-    items.push_back(item);
+    Item HpPotion;
 
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/hppotion.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Heal Potion";
-    item.price = 20;
-    item.tag = 's';
+    HpPotion.texture = new sf::Texture();
+    HpPotion.texture->loadFromFile("../assets/hppotion.png");
+    HpPotion.sprite = new sf::Sprite(*HpPotion.texture);
+    HpPotion.name = "Heal Potion";
+    HpPotion.price = 20;
+    HpPotion.tag = 's';
 
-    items.push_back(item);
+    itemPull.push_back(HpPotion);
 
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/manapotion.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Mana Potion";
-    item.price = 40;
-    item.tag = 's';
+    Item ManaPotion;
 
-    items.push_back(item);
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/manapotion.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Mana Potion";
-    item.price = 40;
-    item.tag = 's';
+    ManaPotion.texture = new sf::Texture();
+    ManaPotion.texture->loadFromFile("../assets/manapotion.png");
+    ManaPotion.sprite = new sf::Sprite(*ManaPotion.texture);
+    ManaPotion.name = "Mana Potion";
+    ManaPotion.price = 40;
+    ManaPotion.tag = 's';
 
-    items.push_back(item);
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/manapotion.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Mana Potion";
-    item.price = 40;
-    item.tag = 's';
+    itemPull.push_back(ManaPotion);
+    
+    Item Sword;
 
-    items.push_back(item);
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/manapotion.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Mana Potion";
-    item.price = 40;
-    item.tag = 's';
+    Sword.texture = new sf::Texture();
+    Sword.texture->loadFromFile("../assets/psword.png");
+    Sword.sprite = new sf::Sprite(*Sword.texture);
+    Sword.name = "Paolo Sword";
+    Sword.price = 100;
+    Sword.tag = 's';
 
-    items.push_back(item);
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/manapotion.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Mana Potion";
-    item.price = 40;
-    item.tag = 's';
-
-    items.push_back(item);
-    item.texture = new sf::Texture();
-    item.texture->loadFromFile("../assets/manapotion.png");
-    item.sprite = new sf::Sprite(*item.texture);
-    item.name = "Mana Potion";
-    item.price = 40;
-    item.tag = 's';
-
-    items.push_back(item);
+    itemPull.push_back(Sword);
     
 
-    for(int i = 0; i < items.size(); i++){
+    for(int i = 0; i < 8; i++){
+            items.push_back(itemPull[rand() % itemPull.size()].Clone());
             items[i].sprite->setScale({0.10f,0.10f});
     }
 
@@ -124,8 +100,10 @@ Item InteractWith(std::vector<Item> items, sf::Sprite mousePos){
 
 int main()
 {
+    srand(static_cast<unsigned int>(time(0)));
     int money = 100;
     bool mouseLeftDown = false;
+    int scene = 0;
 
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "Ippai Shoubai");
     window.setMouseCursorVisible(false);
@@ -161,23 +139,43 @@ int main()
         {50.f,500.f},{200.f,500.f},
     };
 
+
+
     const sf::Texture cursorText("../assets/cursor.png");
     sf::Sprite cursorSprite(cursorText);
     cursorSprite.setOrigin({cursorText.getSize().x / 2.f,cursorText.getSize().y/ 2.f});
     cursorSprite.setScale({0.06f,0.06f});
 
     const sf::Texture bgText("../assets/background.png");
-    sf::Sprite bgSprite(bgText);
-    bgSprite.setOrigin({0.f,0.f});
-    bgSprite.setScale({1.25f,1.25f});
-    
-    std::vector<Item> items = DeclareItems();
+    std::vector<sf::Sprite> bgSprite;
+    bgSprite.push_back(sf::Sprite(bgText));
+    bgSprite[0].setOrigin({0.f,0.f});
+    bgSprite[0].setScale({1.25f,1.25f});
+    bgSprite.push_back(sf::Sprite(bgText));
+    bgSprite[1].setOrigin({0.f,0.f});
+    bgSprite[1].setScale({1.25f,1.25f});
+    bgSprite[1].setColor(sf::Color::Red);
+    bgSprite.push_back(sf::Sprite(bgText));
+    bgSprite[2].setOrigin({0.f,0.f});
+    bgSprite[2].setScale({1.25f,1.25f});
+    bgSprite[2].setColor(sf::Color::Blue);
 
-    /*for(int i = 0; i < items.size(); i++){
-        items[i].sprite->setPosition({200.f,200.f});
-        items[i].sprite->setScale({0.10f,0.10f});
-        
-    }*/
+    const sf::Texture arrowsText("../assets/arrow.png");
+    sf::Sprite leftArrow(arrowsText);
+    leftArrow.setOrigin({arrowsText.getSize().x / 2.f,arrowsText.getSize().y/ 2.f});
+    leftArrow.setScale({0.25f,0.25f});
+    leftArrow.setPosition({1050.f,100.f});
+    leftArrow.setRotation(sf::Angle(sf::degrees(180)));
+    sf::Sprite rightArrow(arrowsText);
+    rightArrow.setOrigin({arrowsText.getSize().x / 2.f,arrowsText.getSize().y/ 2.f});
+    rightArrow.setScale({0.25f,0.25f});
+    rightArrow.setPosition({1200.f,100.f});
+    
+    std::vector<std::vector<Item>> items;
+    items.push_back(DeclareItems());
+    items.push_back(DeclareItems());
+    items.push_back(DeclareItems());
+
             
     Item itemClicked;
     Item itemHover;
@@ -190,7 +188,7 @@ int main()
                 window.close();
 
             if (event->is<sf::Event::MouseButtonPressed>()){
-                itemClicked = InteractWith(items,cursorSprite).Clone();
+                itemClicked = InteractWith(items[scene],cursorSprite).Clone();
 
                 if(inventory.size() < 12 && money >= itemClicked.price && itemClicked.tag == 's') {
                     itemClicked.tag = 'i';
@@ -198,6 +196,7 @@ int main()
                     money -= itemClicked.price;
                     moneyText.setString(std::to_string(money) + "$");
                     inventory.push_back(itemClicked);
+                    break;
                     //std::cout << money << std::endl;
                 }else {
                     itemClicked = InteractWith(inventory,cursorSprite);
@@ -213,6 +212,16 @@ int main()
                         }
                     }
                 }
+
+                if (leftArrow.getGlobalBounds().findIntersection(cursorSprite.getGlobalBounds()) && scene > 0){
+                    scene--;
+                    break;
+                }
+                if (rightArrow.getGlobalBounds().findIntersection(cursorSprite.getGlobalBounds()) && scene < 2){
+                    scene++;
+                    break;
+                }
+
             }
         }
 
@@ -224,30 +233,30 @@ int main()
             //inventory[i].sprite->setScale({0.10f,0.10f});
         }
 
-        for(int i = 0; i < items.size(); i++){
-            items[i].sprite->setPosition(storePos[i]);
+        for(int i = 0; i < items[scene].size(); i++){
+            items[scene][i].sprite->setPosition(storePos[i]);
             
         }
         
         {
             hoverText.setString("");
-            itemHover = InteractWith(items,cursorSprite);
+            itemHover = InteractWith(items[scene],cursorSprite);
             if(itemHover.price != 0){
-                hoverText.setString(itemHover.name + " " + std::to_string(itemHover.price) + "$");
+                hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
             }else{
                 itemHover = InteractWith(inventory,cursorSprite);
                 if(itemHover.price != 0)
-                    hoverText.setString(itemHover.name + " " + std::to_string(itemHover.price) + "$");
+                    hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
             }
         }
 
         window.clear();
-        window.draw(bgSprite);
+        window.draw(bgSprite[scene]);
         //window.draw(shape);
         
 
-        for(int i = 0; i < items.size(); i++)
-            window.draw(*items[i].sprite);
+        for(int i = 0; i < items[scene].size(); i++)
+            window.draw(*items[scene][i].sprite);
 
         for(int i = 0; i < inventory.size(); i++)
             window.draw(*inventory[i].sprite);
@@ -255,6 +264,8 @@ int main()
 
         window.draw(hoverText);
         window.draw(moneyText);
+        window.draw(leftArrow);
+        window.draw(rightArrow);
         window.draw(cursorSprite);
         
         window.display();
