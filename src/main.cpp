@@ -28,14 +28,21 @@ struct Item {
     }
 };
 
+struct Shop{
+    sf::Texture *texture;
+    sf::Sprite  *sprite;
+    std::vector<Item> items;
+    Item forecastHigh;    // item being bought at a high price in next shop
+    Item forecastLow; // item being bought at a low price in next shop
+};
+
 std::vector<Item> ALL_ITEMS;    // vector of all items in the game
-void SetUpItems();
-void SetUpShop();
+
+
+std::vector<Item> SetUpItems(); // set all default items in a vector
+Shop SetUpShop(bool first);
 void GoToNextShop();
 
-
-bool canProceed = false;
-bool madeTransaction = false;
 
 int main(){
     srand(static_cast<unsigned int>(time(0)));  // random seed
@@ -54,6 +61,10 @@ int main(){
     cursorSprite.setOrigin({cursorText.getSize().x / 2.f,cursorText.getSize().y/ 2.f});
     cursorSprite.setScale({0.06f,0.06f});
 
+    ALL_ITEMS = SetUpItems();
+    //std::cout << ALL_ITEMS[3].name.toAnsiString() << std::endl;
+
+    Shop currentShop = SetUpShop(true);
 
     // MAIN LOOP
     while (window.isOpen())
@@ -70,6 +81,7 @@ int main(){
         
         // RENDERING
         window.clear();
+        window.draw(*currentShop.sprite);
         window.draw(cursorSprite);
         window.display();
     }
@@ -77,7 +89,7 @@ int main(){
 
 
 // set all default items in a vector
-std::vector<Item> DeclareItems() {
+std::vector<Item> SetUpItems() {
     std::vector<Item> items;
 
     Item Bow;
@@ -117,4 +129,37 @@ std::vector<Item> DeclareItems() {
     items.push_back(Sword);
     
     return items;
+}
+
+
+Shop SetUpShop(bool first){
+    Shop shop;
+
+    shop.texture = new sf::Texture();
+
+    int bg = rand() % 3;
+    switch(bg){
+        case 0:
+            shop.texture->loadFromFile("../assets/background.png");
+            break;
+        case 1:
+            shop.texture->loadFromFile("../assets/background1.png");
+            break;
+        case 2:
+            shop.texture->loadFromFile("../assets/background2.png");
+            break;
+    }
+    //shop.texture->loadFromFile("../assets/background.png");
+    shop.sprite = new sf::Sprite(*shop.texture);
+
+    shop.sprite->setOrigin({0.f,0.f});
+    shop.sprite->setScale({1.25f,1.25f});
+
+    // add random items to the vector
+    for(int i = 0; i < 8; i++){
+        shop.items.push_back(ALL_ITEMS[rand() % ALL_ITEMS.size()].Clone());
+        shop.items[i].sprite->setScale({0.10f,0.10f});
+    }
+
+    return shop;
 }
