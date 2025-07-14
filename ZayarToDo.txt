@@ -1,0 +1,12 @@
+- goal is to reach a set amount of money
+- game over when you run out of money, have no items in inventory, or can't afford anything from the shop
+- must buy or sell something to go to the next shop
+- prices of items being sold by the shops vary 
+- shops buy certain items with a high price and some with a low price, this is shown in the current shop as a forecast
+
+ART:
+- draw some shopkeepers
+- move inventory position
+
+
+
