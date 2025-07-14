@@ -11,7 +11,7 @@ struct Item {
     sf::Texture *texture;
     sf::Sprite  *sprite;
     sf::String  name;
-    int         price;
+    int         price = 0;
     char        tag;
     // tags : s(shopItem) i(inventoryItem)
 
@@ -37,8 +37,6 @@ std::vector<Item> DeclareItems() {
     item.texture = new sf::Texture();
     item.texture->loadFromFile("../assets/bow.png");
     item.sprite = new sf::Sprite(*item.texture);
-    item.sprite->setPosition({200.f,200.f});
-    item.sprite->setScale({0.10f,0.10f});
     item.name = "Bow";
     item.price = 10;
     item.tag = 's';
@@ -48,8 +46,6 @@ std::vector<Item> DeclareItems() {
     item.texture = new sf::Texture();
     item.texture->loadFromFile("../assets/hppotion.png");
     item.sprite = new sf::Sprite(*item.texture);
-    item.sprite->setPosition({75.f,200.f});
-    item.sprite->setScale({0.05f,0.05f});
     item.name = "Heal Potion";
     item.price = 20;
     item.tag = 's';
@@ -59,13 +55,56 @@ std::vector<Item> DeclareItems() {
     item.texture = new sf::Texture();
     item.texture->loadFromFile("../assets/manapotion.png");
     item.sprite = new sf::Sprite(*item.texture);
-    item.sprite->setPosition({75.f,50.f});
-    item.sprite->setScale({0.05f,0.05f});
     item.name = "Mana Potion";
     item.price = 40;
     item.tag = 's';
 
     items.push_back(item);
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/manapotion.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.name = "Mana Potion";
+    item.price = 40;
+    item.tag = 's';
+
+    items.push_back(item);
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/manapotion.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.name = "Mana Potion";
+    item.price = 40;
+    item.tag = 's';
+
+    items.push_back(item);
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/manapotion.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.name = "Mana Potion";
+    item.price = 40;
+    item.tag = 's';
+
+    items.push_back(item);
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/manapotion.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.name = "Mana Potion";
+    item.price = 40;
+    item.tag = 's';
+
+    items.push_back(item);
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/manapotion.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.name = "Mana Potion";
+    item.price = 40;
+    item.tag = 's';
+
+    items.push_back(item);
+    
+
+    for(int i = 0; i < items.size(); i++){
+            items[i].sprite->setScale({0.10f,0.10f});
+    }
 
     return items;
 }
@@ -95,11 +134,17 @@ int main()
     //window.setIcon(gameIcon);
 
     const sf::Font font("../assets/arial.ttf");
-    sf::Text text(font, std::to_string(money) + "$");
-    text.setCharacterSize(30);
-    text.setStyle(sf::Text::Bold);
-    text.setFillColor(sf::Color::Black);
-    text.setPosition({1150.f,200.f});
+    sf::Text moneyText(font, std::to_string(money) + "$");
+    moneyText.setCharacterSize(30);
+    moneyText.setStyle(sf::Text::Bold);
+    moneyText.setFillColor(sf::Color::Black);
+    moneyText.setPosition({1150.f,200.f});
+
+    sf::Text hoverText(font,"");
+    hoverText.setCharacterSize(40);
+    hoverText.setStyle(sf::Text::Bold);
+    hoverText.setFillColor(sf::Color::Black);
+    hoverText.setPosition({200.f,650.f});
 
     std::vector<Item> inventory;
     sf::Vector2f inventoryPos[12] = {
@@ -107,6 +152,13 @@ int main()
         {925.f,375.f},{1025.f,375.f},{1125.f,375.f},
         {925.f,475.f},{1025.f,475.f},{1125.f,475.f},
         {925.f,575.f},{1025.f,575.f},{1125.f,575.f},
+    };
+
+    sf::Vector2f storePos[8] = {
+        {50.f,50.f},{200.f,50.f},
+        {50.f,200.f},{200.f,200.f},
+        {50.f,350.f},{200.f,350.f},
+        {50.f,500.f},{200.f,500.f},
     };
 
     const sf::Texture cursorText("../assets/cursor.png");
@@ -128,6 +180,7 @@ int main()
     }*/
             
     Item itemClicked;
+    Item itemHover;
 
     while (window.isOpen())
     {
@@ -143,7 +196,7 @@ int main()
                     itemClicked.tag = 'i';
                     //itemClicked.sprite->setColor(sf::Color(rand() % 255,rand() % 255,rand() % 255));
                     money -= itemClicked.price;
-                    text.setString(std::to_string(money) + "$");
+                    moneyText.setString(std::to_string(money) + "$");
                     inventory.push_back(itemClicked);
                     //std::cout << money << std::endl;
                 }else {
@@ -153,7 +206,7 @@ int main()
                         for(int i=0; i < inventory.size(); i++){
                             if(itemClicked.sprite->getPosition() == inventory[i].sprite->getPosition()){
                                 money += itemClicked.price;
-                                text.setString(std::to_string(money) + "$");
+                                moneyText.setString(std::to_string(money) + "$");
                                 inventory.erase(inventory.begin() + i);
                                 break;
                             }
@@ -171,6 +224,23 @@ int main()
             //inventory[i].sprite->setScale({0.10f,0.10f});
         }
 
+        for(int i = 0; i < items.size(); i++){
+            items[i].sprite->setPosition(storePos[i]);
+            
+        }
+        
+        {
+            hoverText.setString("");
+            itemHover = InteractWith(items,cursorSprite);
+            if(itemHover.price != 0){
+                hoverText.setString(itemHover.name + " " + std::to_string(itemHover.price) + "$");
+            }else{
+                itemHover = InteractWith(inventory,cursorSprite);
+                if(itemHover.price != 0)
+                    hoverText.setString(itemHover.name + " " + std::to_string(itemHover.price) + "$");
+            }
+        }
+
         window.clear();
         window.draw(bgSprite);
         //window.draw(shape);
@@ -182,7 +252,9 @@ int main()
         for(int i = 0; i < inventory.size(); i++)
             window.draw(*inventory[i].sprite);
 
-        window.draw(text);
+
+        window.draw(hoverText);
+        window.draw(moneyText);
         window.draw(cursorSprite);
         
         window.display();
