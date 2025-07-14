@@ -30,7 +30,7 @@ struct Item {
 };
 
 
-// set all default items in a vector and 
+// set all default items in a vector and set random items
 std::vector<Item> DeclareItems() {
     std::vector<Item> items;    // vector of random items in shop
     std::vector<Item> itemPull; // vector of default items
