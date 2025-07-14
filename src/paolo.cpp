@@ -30,8 +30,57 @@ struct Item {
 };
 
 
-// set all default items in a vector and
-std::vector<Item> DeclareItems();
+// set all default items in a vector and 
+std::vector<Item> DeclareItems() {
+    std::vector<Item> items;    // vector of random items in shop
+    std::vector<Item> itemPull; // vector of default items
+
+    Item Bow;
+    Bow.texture = new sf::Texture();
+    Bow.texture->loadFromFile("../assets/bow.png");
+    Bow.sprite = new sf::Sprite(*Bow.texture);
+    Bow.name = "Bow";
+    Bow.price = 10;
+    Bow.tag = 's';
+    itemPull.push_back(Bow);
+
+    Item HpPotion;
+    HpPotion.texture = new sf::Texture();
+    HpPotion.texture->loadFromFile("../assets/hppotion.png");
+    HpPotion.sprite = new sf::Sprite(*HpPotion.texture);
+    HpPotion.name = "Heal Potion";
+    HpPotion.price = 20;
+    HpPotion.tag = 's';
+    itemPull.push_back(HpPotion);
+
+    Item ManaPotion;
+    ManaPotion.texture = new sf::Texture();
+    ManaPotion.texture->loadFromFile("../assets/manapotion.png");
+    ManaPotion.sprite = new sf::Sprite(*ManaPotion.texture);
+    ManaPotion.name = "Mana Potion";
+    ManaPotion.price = 40;
+    ManaPotion.tag = 's';
+    itemPull.push_back(ManaPotion);
+    
+    Item Sword;
+    Sword.texture = new sf::Texture();
+    Sword.texture->loadFromFile("../assets/psword.png");
+    Sword.sprite = new sf::Sprite(*Sword.texture);
+    Sword.name = "Paolo Sword";
+    Sword.price = 100;
+    Sword.tag = 's';
+    itemPull.push_back(Sword);
+    
+
+    // add random items to the vector
+    for(int i = 0; i < 8; i++){
+        items.push_back(itemPull[rand() % itemPull.size()].Clone());
+        items[i].sprite->setScale({0.10f,0.10f});
+    }
+
+    return items;
+}
+
 
 // get the item being clicked on
 Item InteractWith(std::vector<Item> items, sf::Sprite mousePos){
@@ -232,56 +281,5 @@ int main()
         
         window.display();
     }
-}
-
-// set all default items in a vector and 
-std::vector<Item> DeclareItems() {
-    std::vector<Item> items;    // vector of random items in shop
-    std::vector<Item> itemPull; // vector of default items
-
-    Item Bow;
-    Bow.texture = new sf::Texture();
-    Bow.texture->loadFromFile("../assets/bow.png");
-    Bow.sprite = new sf::Sprite(*Bow.texture);
-    Bow.name = "Bow";
-    Bow.price = 10;
-    Bow.tag = 's';
-    itemPull.push_back(Bow);
-
-    Item HpPotion;
-    HpPotion.texture = new sf::Texture();
-    HpPotion.texture->loadFromFile("../assets/hppotion.png");
-    HpPotion.sprite = new sf::Sprite(*HpPotion.texture);
-    HpPotion.name = "Heal Potion";
-    HpPotion.price = 20;
-    HpPotion.tag = 's';
-    itemPull.push_back(HpPotion);
-
-    Item ManaPotion;
-    ManaPotion.texture = new sf::Texture();
-    ManaPotion.texture->loadFromFile("../assets/manapotion.png");
-    ManaPotion.sprite = new sf::Sprite(*ManaPotion.texture);
-    ManaPotion.name = "Mana Potion";
-    ManaPotion.price = 40;
-    ManaPotion.tag = 's';
-    itemPull.push_back(ManaPotion);
-    
-    Item Sword;
-    Sword.texture = new sf::Texture();
-    Sword.texture->loadFromFile("../assets/psword.png");
-    Sword.sprite = new sf::Sprite(*Sword.texture);
-    Sword.name = "Paolo Sword";
-    Sword.price = 100;
-    Sword.tag = 's';
-    itemPull.push_back(Sword);
-    
-
-    // add random items to the vector
-    for(int i = 0; i < 8; i++){
-        items.push_back(itemPull[rand() % itemPull.size()].Clone());
-        items[i].sprite->setScale({0.10f,0.10f});
-    }
-
-    return items;
 }
 
