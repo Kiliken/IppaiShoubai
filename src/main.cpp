@@ -1,20 +1,21 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <stdlib.h>
 
- #include <SFML/Graphics.hpp>
- #include <iostream>
- #include <vector>
- #include <algorithm>
- #include <stdlib.h>
+#define ASSETS "../assets/"
 
- #define ASSETS "../assets/"
 
+// Item struct used for each item in the game
 struct Item {
     sf::Texture *texture;
     sf::Sprite  *sprite;
     sf::String  name;
     int         price = 0;
-    char        tag;
-    // tags : s(shopItem) i(inventoryItem)
-
+    char        tag;    // tags : s(shopItem) i(inventoryItem)
+    
+    // generate a copy of the struct
     Item Clone() {
         Item newItem;
         newItem.texture = this->texture;
@@ -28,82 +29,79 @@ struct Item {
     }
 };
 
+
+// set all default items in a vector and 
 std::vector<Item> DeclareItems() {
-    std::vector<Item> items;
-    std::vector<Item> itemPull;
+    std::vector<Item> items;    // vector of random items in shop
+    std::vector<Item> itemPull; // vector of default items
 
     Item Bow;
-
     Bow.texture = new sf::Texture();
     Bow.texture->loadFromFile("../assets/bow.png");
     Bow.sprite = new sf::Sprite(*Bow.texture);
     Bow.name = "Bow";
     Bow.price = 10;
     Bow.tag = 's';
-
     itemPull.push_back(Bow);
 
     Item HpPotion;
-
     HpPotion.texture = new sf::Texture();
     HpPotion.texture->loadFromFile("../assets/hppotion.png");
     HpPotion.sprite = new sf::Sprite(*HpPotion.texture);
     HpPotion.name = "Heal Potion";
     HpPotion.price = 20;
     HpPotion.tag = 's';
-
     itemPull.push_back(HpPotion);
 
     Item ManaPotion;
-
     ManaPotion.texture = new sf::Texture();
     ManaPotion.texture->loadFromFile("../assets/manapotion.png");
     ManaPotion.sprite = new sf::Sprite(*ManaPotion.texture);
     ManaPotion.name = "Mana Potion";
     ManaPotion.price = 40;
     ManaPotion.tag = 's';
-
     itemPull.push_back(ManaPotion);
     
     Item Sword;
-
     Sword.texture = new sf::Texture();
     Sword.texture->loadFromFile("../assets/psword.png");
     Sword.sprite = new sf::Sprite(*Sword.texture);
     Sword.name = "Paolo Sword";
     Sword.price = 100;
     Sword.tag = 's';
-
     itemPull.push_back(Sword);
     
 
+    // add random items to the vector
     for(int i = 0; i < 8; i++){
-            items.push_back(itemPull[rand() % itemPull.size()].Clone());
-            items[i].sprite->setScale({0.10f,0.10f});
+        items.push_back(itemPull[rand() % itemPull.size()].Clone());
+        items[i].sprite->setScale({0.10f,0.10f});
     }
 
     return items;
 }
 
+
+// get the item being clicked on
 Item InteractWith(std::vector<Item> items, sf::Sprite mousePos){
     Item empty;
 
-
     for(int i = 0; i < items.size(); i++){
-         if (items[i].sprite->getGlobalBounds().findIntersection(mousePos.getGlobalBounds())){
-            return items[i];
-         }    
+        if (items[i].sprite->getGlobalBounds().findIntersection(mousePos.getGlobalBounds())){
+        return items[i];
+        }    
     }
 
     return empty;
 }
 
+
 int main()
 {
-    srand(static_cast<unsigned int>(time(0)));
+    srand(static_cast<unsigned int>(time(0)));  // random seed
     int money = 100;
     bool mouseLeftDown = false;
-    int scene = 0;
+    int scene = 0;  // current shop
 
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "Ippai Shoubai");
     window.setMouseCursorVisible(false);
@@ -111,6 +109,7 @@ int main()
     //const sf::Image gameIcon("../assets/cursor.png");
     //window.setIcon(gameIcon);
 
+    // money text
     const sf::Font font("../assets/arial.ttf");
     sf::Text moneyText(font, std::to_string(money) + "$");
     moneyText.setCharacterSize(30);
@@ -118,12 +117,14 @@ int main()
     moneyText.setFillColor(sf::Color::Black);
     moneyText.setPosition({1150.f,200.f});
 
+    // text for item being hovered on
     sf::Text hoverText(font,"");
     hoverText.setCharacterSize(40);
     hoverText.setStyle(sf::Text::Bold);
     hoverText.setFillColor(sf::Color::Black);
     hoverText.setPosition({200.f,650.f});
 
+    // item positions
     std::vector<Item> inventory;
     sf::Vector2f inventoryPos[12] = {
         {925.f,275.f},{1025.f,275.f},{1125.f,275.f},
@@ -139,13 +140,13 @@ int main()
         {50.f,500.f},{200.f,500.f},
     };
 
-
-
+    // cursor
     const sf::Texture cursorText("../assets/cursor.png");
     sf::Sprite cursorSprite(cursorText);
     cursorSprite.setOrigin({cursorText.getSize().x / 2.f,cursorText.getSize().y/ 2.f});
     cursorSprite.setScale({0.06f,0.06f});
 
+    // backgrounds of shops
     const sf::Texture bgText("../assets/background.png");
     std::vector<sf::Sprite> bgSprite;
     bgSprite.push_back(sf::Sprite(bgText));
@@ -160,6 +161,7 @@ int main()
     bgSprite[2].setScale({1.25f,1.25f});
     bgSprite[2].setColor(sf::Color::Blue);
 
+    // arrows for switching shops
     const sf::Texture arrowsText("../assets/arrow.png");
     sf::Sprite leftArrow(arrowsText);
     leftArrow.setOrigin({arrowsText.getSize().x / 2.f,arrowsText.getSize().y/ 2.f});
@@ -171,25 +173,29 @@ int main()
     rightArrow.setScale({0.25f,0.25f});
     rightArrow.setPosition({1200.f,100.f});
     
+    // vectors of items, in a vector for each shop
     std::vector<std::vector<Item>> items;
     items.push_back(DeclareItems());
     items.push_back(DeclareItems());
     items.push_back(DeclareItems());
 
-            
     Item itemClicked;
     Item itemHover;
+
 
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
         {
+            // close window
             if (event->is<sf::Event::Closed>())
                 window.close();
 
+            // mouse button press
             if (event->is<sf::Event::MouseButtonPressed>()){
                 itemClicked = InteractWith(items[scene],cursorSprite).Clone();
 
+                // buy item from shop
                 if(inventory.size() < 12 && money >= itemClicked.price && itemClicked.tag == 's') {
                     itemClicked.tag = 'i';
                     //itemClicked.sprite->setColor(sf::Color(rand() % 255,rand() % 255,rand() % 255));
@@ -198,7 +204,9 @@ int main()
                     inventory.push_back(itemClicked);
                     break;
                     //std::cout << money << std::endl;
-                }else {
+                }
+                // sell item from inventory
+                else{
                     itemClicked = InteractWith(inventory,cursorSprite);
                 
                     if(itemClicked.tag == 'i'){
@@ -213,6 +221,7 @@ int main()
                     }
                 }
 
+                // switch shops
                 if (leftArrow.getGlobalBounds().findIntersection(cursorSprite.getGlobalBounds()) && scene > 0){
                     scene--;
                     break;
@@ -225,9 +234,10 @@ int main()
             }
         }
 
+        // corsor
         cursorSprite.setPosition({static_cast<float>(sf::Mouse::getPosition().x) - window.getPosition().x,static_cast<float>(sf::Mouse::getPosition().y) - window.getPosition().y});
         
-        
+        // set item positions
        for(int i = 0; i < inventory.size(); i++){
             inventory[i].sprite->setPosition(inventoryPos[i]);
             //inventory[i].sprite->setScale({0.10f,0.10f});
@@ -238,6 +248,7 @@ int main()
             
         }
         
+        // set item text
         {
             hoverText.setString("");
             itemHover = InteractWith(items[scene],cursorSprite);
