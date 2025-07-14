@@ -9,3 +9,6 @@ SET links=/link /LIBPATH:%cd%/src /LIBPATH:%cd%/SFML-3.0.0/lib MSVCRT.lib LIBCMT
 SET defines=/D RELEASE
 
 cl /std:c++17 /EHsc /Fe"%cd%/build/Main.exe" /Fo"%cd%/build/" %includes% %defines% src/main.cpp %links%
+
+cd build
+Main.exe

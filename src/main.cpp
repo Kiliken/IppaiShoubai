@@ -1,69 +1,274 @@
 #include <iostream>
  #include <SFML/Graphics.hpp>
+ #include <iostream>
+ #include <vector>
+ #include <algorithm>
+ #include <stdlib.h>
 
-enum directions { down, right, up, left };
-int main()
-{
-    unsigned int windowWidth = 640;
-    unsigned int windowHeight = 360;
-    sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode({windowWidth, windowHeight}), "SFML Test");
-    window->setFramerateLimit(60);
+ #define ASSETS "../assets/"
 
-    sf::Texture texture;
-    if(!texture.loadFromFile("Sprites/ExampleSprite.png")){
-        std::cerr << "ERROR::COULD NOT LOAD FILE::Sprites/ExampleSprite.png" << std::endl;
-		return -1;
+struct Item {
+    sf::Texture *texture;
+    sf::Sprite  *sprite;
+    sf::String  name;
+    int         price = 0;
+    char        tag;
+    // tags : s(shopItem) i(inventoryItem)
+
+    Item Clone() {
+        Item newItem;
+        newItem.texture = this->texture;
+        newItem.sprite = new sf::Sprite(*newItem.texture);
+        newItem.sprite->setScale(this->sprite->getScale());
+        newItem.price = this->price;
+        newItem.name = this->name;
+        newItem.tag = this->tag;
+
+        return newItem;
     }
-    sf::Sprite sprite(texture);
+};
 
-    sf::IntRect dir[4];
-    for (int i = 0; i < 4; i++)
-    {
-        dir[i] = sf::IntRect({32 * i, 0}, {32, 32});
-    }
+std::vector<Item> DeclareItems() {
+    std::vector<Item> items;
+    std::vector<Item> itemPull;
 
-    sprite.setTextureRect(dir[down]);
-    sprite.setOrigin({16, 16});
-    sprite.setPosition({windowWidth / 2.0f, windowHeight / 2.0f});
+    Item Bow;
 
+    Bow.texture = new sf::Texture();
+    Bow.texture->loadFromFile("../assets/bow.png");
+    Bow.sprite = new sf::Sprite(*Bow.texture);
+    Bow.name = "Bow";
+    Bow.price = 10;
+    Bow.tag = 's';
+
+    itemPull.push_back(Bow);
+
+    Item HpPotion;
+
+    HpPotion.texture = new sf::Texture();
+    HpPotion.texture->loadFromFile("../assets/hppotion.png");
+    HpPotion.sprite = new sf::Sprite(*HpPotion.texture);
+    HpPotion.name = "Heal Potion";
+    HpPotion.price = 20;
+    HpPotion.tag = 's';
+
+    itemPull.push_back(HpPotion);
+
+    Item ManaPotion;
+
+    ManaPotion.texture = new sf::Texture();
+    ManaPotion.texture->loadFromFile("../assets/manapotion.png");
+    ManaPotion.sprite = new sf::Sprite(*ManaPotion.texture);
+    ManaPotion.name = "Mana Potion";
+    ManaPotion.price = 40;
+    ManaPotion.tag = 's';
+
+    itemPull.push_back(ManaPotion);
+    
+    Item Sword;
+
+    Sword.texture = new sf::Texture();
+    Sword.texture->loadFromFile("../assets/psword.png");
+    Sword.sprite = new sf::Sprite(*Sword.texture);
+    Sword.name = "Paolo Sword";
+    Sword.price = 100;
+    Sword.tag = 's';
+
+    itemPull.push_back(Sword);
     
 
+    for(int i = 0; i < 8; i++){
+            items.push_back(itemPull[rand() % itemPull.size()].Clone());
+            items[i].sprite->setScale({0.10f,0.10f});
+    }
 
-    while (window->isOpen())
+    return items;
+}
+
+Item InteractWith(std::vector<Item> items, sf::Sprite mousePos){
+    Item empty;
+
+
+    for(int i = 0; i < items.size(); i++){
+         if (items[i].sprite->getGlobalBounds().findIntersection(mousePos.getGlobalBounds())){
+            return items[i];
+         }    
+    }
+
+    return empty;
+}
+
+int main()
+{
+    srand(static_cast<unsigned int>(time(0)));
+    int money = 100;
+    bool mouseLeftDown = false;
+    int scene = 0;
+
+    sf::RenderWindow window(sf::VideoMode({1280, 720}), "Ippai Shoubai");
+    window.setMouseCursorVisible(false);
+    window.setFramerateLimit(60);
+    //const sf::Image gameIcon("../assets/cursor.png");
+    //window.setIcon(gameIcon);
+
+    const sf::Font font("../assets/arial.ttf");
+    sf::Text moneyText(font, std::to_string(money) + "$");
+    moneyText.setCharacterSize(30);
+    moneyText.setStyle(sf::Text::Bold);
+    moneyText.setFillColor(sf::Color::Black);
+    moneyText.setPosition({1150.f,200.f});
+
+    sf::Text hoverText(font,"");
+    hoverText.setCharacterSize(40);
+    hoverText.setStyle(sf::Text::Bold);
+    hoverText.setFillColor(sf::Color::Black);
+    hoverText.setPosition({200.f,650.f});
+
+    std::vector<Item> inventory;
+    sf::Vector2f inventoryPos[12] = {
+        {925.f,275.f},{1025.f,275.f},{1125.f,275.f},
+        {925.f,375.f},{1025.f,375.f},{1125.f,375.f},
+        {925.f,475.f},{1025.f,475.f},{1125.f,475.f},
+        {925.f,575.f},{1025.f,575.f},{1125.f,575.f},
+    };
+
+    sf::Vector2f storePos[8] = {
+        {50.f,50.f},{200.f,50.f},
+        {50.f,200.f},{200.f,200.f},
+        {50.f,350.f},{200.f,350.f},
+        {50.f,500.f},{200.f,500.f},
+    };
+
+
+
+    const sf::Texture cursorText("../assets/cursor.png");
+    sf::Sprite cursorSprite(cursorText);
+    cursorSprite.setOrigin({cursorText.getSize().x / 2.f,cursorText.getSize().y/ 2.f});
+    cursorSprite.setScale({0.06f,0.06f});
+
+    const sf::Texture bgText("../assets/background.png");
+    std::vector<sf::Sprite> bgSprite;
+    bgSprite.push_back(sf::Sprite(bgText));
+    bgSprite[0].setOrigin({0.f,0.f});
+    bgSprite[0].setScale({1.25f,1.25f});
+    bgSprite.push_back(sf::Sprite(bgText));
+    bgSprite[1].setOrigin({0.f,0.f});
+    bgSprite[1].setScale({1.25f,1.25f});
+    bgSprite[1].setColor(sf::Color::Red);
+    bgSprite.push_back(sf::Sprite(bgText));
+    bgSprite[2].setOrigin({0.f,0.f});
+    bgSprite[2].setScale({1.25f,1.25f});
+    bgSprite[2].setColor(sf::Color::Blue);
+
+    const sf::Texture arrowsText("../assets/arrow.png");
+    sf::Sprite leftArrow(arrowsText);
+    leftArrow.setOrigin({arrowsText.getSize().x / 2.f,arrowsText.getSize().y/ 2.f});
+    leftArrow.setScale({0.25f,0.25f});
+    leftArrow.setPosition({1050.f,100.f});
+    leftArrow.setRotation(sf::Angle(sf::degrees(180)));
+    sf::Sprite rightArrow(arrowsText);
+    rightArrow.setOrigin({arrowsText.getSize().x / 2.f,arrowsText.getSize().y/ 2.f});
+    rightArrow.setScale({0.25f,0.25f});
+    rightArrow.setPosition({1200.f,100.f});
+    
+    std::vector<std::vector<Item>> items;
+    items.push_back(DeclareItems());
+    items.push_back(DeclareItems());
+    items.push_back(DeclareItems());
+
+            
+    Item itemClicked;
+    Item itemHover;
+
+    while (window.isOpen())
     {
         while (const std::optional event = window->pollEvent())
         {
             if (event->is<sf::Event::Closed>())
-                window->close();
+                window.close();
+
+            if (event->is<sf::Event::MouseButtonPressed>()){
+                itemClicked = InteractWith(items[scene],cursorSprite).Clone();
+
+                if(inventory.size() < 12 && money >= itemClicked.price && itemClicked.tag == 's') {
+                    itemClicked.tag = 'i';
+                    //itemClicked.sprite->setColor(sf::Color(rand() % 255,rand() % 255,rand() % 255));
+                    money -= itemClicked.price;
+                    moneyText.setString(std::to_string(money) + "$");
+                    inventory.push_back(itemClicked);
+                    break;
+                    //std::cout << money << std::endl;
+                }else {
+                    itemClicked = InteractWith(inventory,cursorSprite);
+                
+                    if(itemClicked.tag == 'i'){
+                        for(int i=0; i < inventory.size(); i++){
+                            if(itemClicked.sprite->getPosition() == inventory[i].sprite->getPosition()){
+                                money += itemClicked.price;
+                                moneyText.setString(std::to_string(money) + "$");
+                                inventory.erase(inventory.begin() + i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (leftArrow.getGlobalBounds().findIntersection(cursorSprite.getGlobalBounds()) && scene > 0){
+                    scene--;
+                    break;
+                }
+                if (rightArrow.getGlobalBounds().findIntersection(cursorSprite.getGlobalBounds()) && scene < 2){
+                    scene++;
+                    break;
+                }
+
+            }
         }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::S)) {
-
-			sprite.move({ 0.0f, 1.0f });
-			sprite.setTextureRect(dir[down]);
-		}
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::W)) {
-
-			sprite.move({ 0.0f, -1.0f });
-			sprite.setTextureRect(dir[up]);
-		}
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::D)) {
-
-			sprite.move({ 1.0f, 0.0f });
-			sprite.setTextureRect(dir[right]);
-		}
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::A)) {
-
-			sprite.move({ -1.0f, 0.0f });
-			sprite.setTextureRect(dir[left]);
-		}
-
-        // render
-        window->clear();
-
-        // draw
-        window->draw(sprite);
+        cursorSprite.setPosition({static_cast<float>(sf::Mouse::getPosition().x) - window.getPosition().x,static_cast<float>(sf::Mouse::getPosition().y) - window.getPosition().y});
         
-        window->display();
+        
+       for(int i = 0; i < inventory.size(); i++){
+            inventory[i].sprite->setPosition(inventoryPos[i]);
+            //inventory[i].sprite->setScale({0.10f,0.10f});
+        }
+
+        for(int i = 0; i < items[scene].size(); i++){
+            items[scene][i].sprite->setPosition(storePos[i]);
+            
+        }
+        
+        {
+            hoverText.setString("");
+            itemHover = InteractWith(items[scene],cursorSprite);
+            if(itemHover.price != 0){
+                hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
+            }else{
+                itemHover = InteractWith(inventory,cursorSprite);
+                if(itemHover.price != 0)
+                    hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
+            }
+        }
+
+        window.clear();
+        window.draw(bgSprite[scene]);
+        //window.draw(shape);
+        
+
+        for(int i = 0; i < items[scene].size(); i++)
+            window.draw(*items[scene][i].sprite);
+
+        for(int i = 0; i < inventory.size(); i++)
+            window.draw(*inventory[i].sprite);
+
+
+        window.draw(hoverText);
+        window.draw(moneyText);
+        window.draw(leftArrow);
+        window.draw(rightArrow);
+        window.draw(cursorSprite);
+        
+        window.display();
     }
 }
+
