@@ -2,6 +2,8 @@
  #include <SFML/Graphics.hpp>
  #include <iostream>
  #include <vector>
+ #include <algorithm>
+ #include <stdlib.h>
 
  #define ASSETS "../assets/"
 
@@ -17,6 +19,7 @@ struct Item {
         Item newItem;
         newItem.texture = this->texture;
         newItem.sprite = new sf::Sprite(*newItem.texture);
+        newItem.sprite->setScale(this->sprite->getScale());
         newItem.price = this->price;
         newItem.name = this->name;
         newItem.tag = this->tag;
@@ -28,17 +31,41 @@ struct Item {
 std::vector<Item> DeclareItems() {
     std::vector<Item> items;
 
-    Item bow;
+    Item item;
 
 
-    bow.texture = new sf::Texture();
-    bow.texture->loadFromFile("../assets/bow.png");
-    bow.sprite = new sf::Sprite(*bow.texture);
-    bow.name = "Bow";
-    bow.price = 10;
-    bow.tag = 's';
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/bow.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.sprite->setPosition({200.f,200.f});
+    item.sprite->setScale({0.10f,0.10f});
+    item.name = "Bow";
+    item.price = 10;
+    item.tag = 's';
 
-    items.push_back(bow);
+    items.push_back(item);
+
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/hppotion.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.sprite->setPosition({75.f,200.f});
+    item.sprite->setScale({0.05f,0.05f});
+    item.name = "Heal Potion";
+    item.price = 20;
+    item.tag = 's';
+
+    items.push_back(item);
+
+    item.texture = new sf::Texture();
+    item.texture->loadFromFile("../assets/manapotion.png");
+    item.sprite = new sf::Sprite(*item.texture);
+    item.sprite->setPosition({75.f,50.f});
+    item.sprite->setScale({0.05f,0.05f});
+    item.name = "Mana Potion";
+    item.price = 40;
+    item.tag = 's';
+
+    items.push_back(item);
 
     return items;
 }
@@ -67,8 +94,12 @@ int main()
     //const sf::Image gameIcon("../assets/cursor.png");
     //window.setIcon(gameIcon);
 
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Red);
+    const sf::Font font("../assets/arial.ttf");
+    sf::Text text(font, std::to_string(money) + "$");
+    text.setCharacterSize(30);
+    text.setStyle(sf::Text::Bold);
+    text.setFillColor(sf::Color::Black);
+    text.setPosition({1150.f,200.f});
 
     std::vector<Item> inventory;
     sf::Vector2f inventoryPos[12] = {
@@ -90,11 +121,11 @@ int main()
     
     std::vector<Item> items = DeclareItems();
 
-    for(int i = 0; i < items.size(); i++){
+    /*for(int i = 0; i < items.size(); i++){
         items[i].sprite->setPosition({200.f,200.f});
         items[i].sprite->setScale({0.10f,0.10f});
         
-    }
+    }*/
             
     Item itemClicked;
 
@@ -108,20 +139,27 @@ int main()
             if (event->is<sf::Event::MouseButtonPressed>()){
                 itemClicked = InteractWith(items,cursorSprite).Clone();
 
-                if(inventory.size() < 12 && money > itemClicked.price && itemClicked.tag == 's') {
+                if(inventory.size() < 12 && money >= itemClicked.price && itemClicked.tag == 's') {
                     itemClicked.tag = 'i';
+                    //itemClicked.sprite->setColor(sf::Color(rand() % 255,rand() % 255,rand() % 255));
                     money -= itemClicked.price;
+                    text.setString(std::to_string(money) + "$");
                     inventory.push_back(itemClicked);
-                    std::cout << money << std::endl;
+                    //std::cout << money << std::endl;
+                }else {
+                    itemClicked = InteractWith(inventory,cursorSprite);
+                
+                    if(itemClicked.tag == 'i'){
+                        for(int i=0; i < inventory.size(); i++){
+                            if(itemClicked.sprite->getPosition() == inventory[i].sprite->getPosition()){
+                                money += itemClicked.price;
+                                text.setString(std::to_string(money) + "$");
+                                inventory.erase(inventory.begin() + i);
+                                break;
+                            }
+                        }
+                    }
                 }
-
-                //itemClicked = InteractWith(inventory,cursorSprite);
-                
-                //if(itemClicked.tag == 'i'){
-                    //money += itemClicked.price;
-                    //inventory.pop_back();
-                //}
-                
             }
         }
 
@@ -130,7 +168,7 @@ int main()
         
        for(int i = 0; i < inventory.size(); i++){
             inventory[i].sprite->setPosition(inventoryPos[i]);
-            inventory[i].sprite->setScale({0.10f,0.10f});
+            //inventory[i].sprite->setScale({0.10f,0.10f});
         }
 
         window.clear();
@@ -144,6 +182,7 @@ int main()
         for(int i = 0; i < inventory.size(); i++)
             window.draw(*inventory[i].sprite);
 
+        window.draw(text);
         window.draw(cursorSprite);
         
         window.display();
