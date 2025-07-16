@@ -3,8 +3,6 @@
 #include <vector>
 #include <algorithm>
 #include <stdlib.h>
-#include <random>
-#include <numeric>
 
 #define ASSETS "../assets/"
 
@@ -13,10 +11,8 @@ struct Item {
     sf::Texture *texture;
     sf::Sprite  *sprite;
     sf::String  name;
-    int         id;
     int         price = 0;
     char        tag;    // tags : s(shopItem) i(inventoryItem)
-    float       priceModifier;
     
     // generate a copy of the struct
     Item Clone() {
@@ -24,11 +20,9 @@ struct Item {
         newItem.texture = this->texture;
         newItem.sprite = new sf::Sprite(*newItem.texture);
         newItem.sprite->setScale(this->sprite->getScale());
-        newItem.id = this->id;
         newItem.price = this->price;
         newItem.name = this->name;
         newItem.tag = this->tag;
-        newItem.priceModifier = this->priceModifier;
 
         return newItem;
     }
@@ -48,15 +42,15 @@ struct Shop{
 
 
 std::vector<Item> ALL_ITEMS;    // vector of all items in the game
+float HIGH_RATE = 0.8f; // multiplier for the items being bought with a high price in the shop (+80%)
+float HIGH_RATE_SHOP = 2.f; // multiplier for high price items being sold in the shop (2x)
+float LOW_RATE = 0.5f;  // low price multiplier
 
 
 // FORWARD DECLARATIONS
 std::vector<Item> SetUpItems(); // set all default items in a vector
 Shop SetUpShop(int highItem, int lowItem);
-Item InteractWith(std::vector<Item> &items, sf::Sprite mousePos); // mouse interaction for items
-int GetRandomIntInRange(int min, int max);
-void ModifyPrices(int highItem, int lowItem);
-void ModifyItemListPrice(std::vector<Item> &items);
+Item InteractWith(std::vector<Item> items, sf::Sprite mousePos); // mouse interaction for items
 
 
 
@@ -156,52 +150,62 @@ int main(){
 
             // mouse button press
             if (event->is<sf::Event::MouseButtonPressed>() && !gameClear && !gameOver){
-                Item clickedItem = InteractWith(currentShop.items, cursorSprite);
-                if (clickedItem.sprite != nullptr) {
-                    itemClicked = clickedItem.Clone();
+                itemClicked = InteractWith(currentShop.items,cursorSprite).Clone();
 
-                    // buy item from shop
-                    if(inventory.size() < 12 && money >= itemClicked.price && itemClicked.tag == 's') {
-                        itemClicked.tag = 'i';
-                        //itemClicked.sprite->setColor(sf::Color(rand() % 255,rand() % 255,rand() % 255));
-                        money -= itemClicked.price;
-                        moneyText.setString(std::to_string(money) + "$");
-                        inventory.push_back(itemClicked);
-                        madeTransaction = true;
-                        break;
-                        //std::cout << money << std::endl;
-                    }
+                // double price in shop if high price item
+                int buyPrice = itemClicked.price;
+                if(itemClicked.name == ALL_ITEMS[currentShop.currentHigh].name){
+                    buyPrice = itemClicked.price * HIGH_RATE_SHOP;
+                }
+                // else if(itemClicked.name == ALL_ITEMS[currentShop.currentLow].name){
+                //     //std::cout << "low item" << std::endl;
+                //     buyPrice = itemClicked.price - itemClicked.price * LOW_RATE;
+                // }
+
+                // buy item from shop
+                if(inventory.size() < 12 && money >= buyPrice && itemClicked.tag == 's') {
+                    itemClicked.tag = 'i';
+                    //itemClicked.sprite->setColor(sf::Color(rand() % 255,rand() % 255,rand() % 255));
+                    money -= buyPrice;
+                    moneyText.setString(std::to_string(money) + "$");
+                    inventory.push_back(itemClicked);
+                    madeTransaction = true;
+                    break;
+                    //std::cout << money << std::endl;
                 }
                 // sell item from inventory
                 else{
                     itemClicked = InteractWith(inventory,cursorSprite);
                 
-                    if(itemClicked.sprite != nullptr){
-                        if(itemClicked.tag == 'i'){
-                            for(int i = 0; i < inventory.size(); i++){
-                                if(itemClicked.sprite->getPosition() == inventory[i].sprite->getPosition()){
-                                    money += itemClicked.price;
-                                    
-                                    moneyText.setString(std::to_string(money) + "$");
-                                    inventory.erase(inventory.begin() + i);
-
-                                    madeTransaction = true;
-                                    break;
+                    if(itemClicked.tag == 'i'){
+                        for(int i=0; i < inventory.size(); i++){
+                            if(itemClicked.sprite->getPosition() == inventory[i].sprite->getPosition()){
+                                if(itemClicked.name == ALL_ITEMS[currentShop.currentHigh].name){
+                                    //std::cout << "high item" << std::endl;
+                                    money += itemClicked.price + itemClicked.price * HIGH_RATE;
                                 }
+                                else if(itemClicked.name == ALL_ITEMS[currentShop.currentLow].name){
+                                    //std::cout << "low item" << std::endl;
+                                    money += itemClicked.price - itemClicked.price * LOW_RATE;
+                                }
+                                else{
+                                    money += itemClicked.price;
+                                }
+                                //money += itemClicked.price;
+                                
+                                moneyText.setString(std::to_string(money) + "$");
+                                inventory.erase(inventory.begin() + i);
+
+                                madeTransaction = true;
+                                break;
                             }
                         }
-                        
                     }
                 }
 
                 // go to next shop
                 if (rightArrow.getGlobalBounds().findIntersection(cursorSprite.getGlobalBounds()) && madeTransaction){
                     currentShop = SetUpShop(currentShop.forecastHigh, currentShop.forecastLow);
-                    ModifyPrices(currentShop.currentHigh, currentShop.currentLow);
-                    std::cout << "shop prices:" << std::endl;
-                    ModifyItemListPrice(currentShop.items);
-                    std::cout << "inventory prices:" << std::endl;
-                    ModifyItemListPrice(inventory);
 
                     itemHigh = ALL_ITEMS[currentShop.forecastHigh].Clone();
                     itemHigh.sprite->setScale({0.10f,0.10f});
@@ -244,11 +248,29 @@ int main(){
         hoverText.setString("");
         itemHover = InteractWith(currentShop.items, cursorSprite);
         if(itemHover.price != 0){
-            hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
+            if(itemHover.name == ALL_ITEMS[currentShop.currentHigh].name){
+                hoverText.setString(itemHover.name + " : " + std::to_string(static_cast<int>(itemHover.price * HIGH_RATE_SHOP)) + "$");
+            }
+            // else if(itemHover.name == ALL_ITEMS[currentShop.currentLow].name){
+            //     hoverText.setString(itemHover.name + " : " + std::to_string(static_cast<int>(itemHover.price - itemHover.price * LOW_RATE)) + "$");
+            // }
+            else{
+                hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
+            }
+            //hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
         }else{
             itemHover = InteractWith(inventory, cursorSprite);
             if(itemHover.price != 0){
-                hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
+                if(itemHover.name == ALL_ITEMS[currentShop.currentHigh].name){
+                    hoverText.setString(itemHover.name + " : " + std::to_string(static_cast<int>(itemHover.price + itemHover.price * HIGH_RATE)) + "$");
+                }
+                else if(itemHover.name == ALL_ITEMS[currentShop.currentLow].name){
+                    hoverText.setString(itemHover.name + " : " + std::to_string(static_cast<int>(itemHover.price - itemHover.price * LOW_RATE)) + "$");
+                }
+                else{
+                    hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
+                }
+                //hoverText.setString(itemHover.name + " : " + std::to_string(itemHover.price) + "$");
                 
             }
         }
@@ -293,7 +315,6 @@ std::vector<Item> SetUpItems() {
     Bow.texture->loadFromFile("../assets/bow.png");
     Bow.sprite = new sf::Sprite(*Bow.texture);
     Bow.name = "Bow";
-    Bow.id = 0;
     Bow.price = 10;
     Bow.tag = 's';
     items.push_back(Bow);
@@ -303,7 +324,6 @@ std::vector<Item> SetUpItems() {
     HpPotion.texture->loadFromFile("../assets/hppotion.png");
     HpPotion.sprite = new sf::Sprite(*HpPotion.texture);
     HpPotion.name = "Heal Potion";
-    HpPotion.id = 1;
     HpPotion.price = 20;
     HpPotion.tag = 's';
     items.push_back(HpPotion);
@@ -313,7 +333,6 @@ std::vector<Item> SetUpItems() {
     ManaPotion.texture->loadFromFile("../assets/manapotion.png");
     ManaPotion.sprite = new sf::Sprite(*ManaPotion.texture);
     ManaPotion.name = "Mana Potion";
-    ManaPotion.id = 2;
     ManaPotion.price = 40;
     ManaPotion.tag = 's';
     items.push_back(ManaPotion);
@@ -323,7 +342,6 @@ std::vector<Item> SetUpItems() {
     Sword.texture->loadFromFile("../assets/psword.png");
     Sword.sprite = new sf::Sprite(*Sword.texture);
     Sword.name = "Paolo Sword";
-    Sword.id = 3;
     Sword.price = 100;
     Sword.tag = 's';
     items.push_back(Sword);
@@ -359,24 +377,45 @@ Shop SetUpShop(int highItem, int lowItem){
 
 
     // SHOP ITEMS
-    std::vector<int> indices(ALL_ITEMS.size()); // Shuffle item indices to ensure uniqueness
-    std::iota(indices.begin(), indices.end(), 0); // Fill with 0 to ALL_ITEMS.size()-1
-    std::shuffle(indices.begin(), indices.end(), std::mt19937(std::random_device{}()));
-
-
-    
     shop.lowestItemPrice = 5000;
     // add random items to the vector
-    // 3 ITEMS, INCRESE TO 4 LATER
-    for(int i = 0; i < 3 && i < indices.size(); i++){
-        int itemNo = indices[i];
-        Item item = ALL_ITEMS[itemNo].Clone();
+    for(int i = 0; i < 4; i++){
+        // // item being bought with high price
+        // if(i == 0 && highItem != -1){
+        //     Item h = ALL_ITEMS[highItem].Clone();
+        //     h.price = h.price + h.price * HIGH_RATE;
+        //     std::cout << h.price << std::endl;
+        //     shop.items.push_back(h);
+        // }
+        // // item being bought with low price
+        // else if(i == 1 && lowItem != -1){
+        //     Item l = ALL_ITEMS[lowItem].Clone();
+        //     l.price = l.price - l.price * LOW_RATE;
+        //     std::cout << l.price << std::endl;
+        //     shop.items.push_back(l);
+        // }
+        // // item being bought with high price
+        // else{
+        //     shop.items.push_back(ALL_ITEMS[rand() % ALL_ITEMS.size()].Clone());
+        // }
 
+        int itemNo = rand() % ALL_ITEMS.size();
+        Item item = ALL_ITEMS[itemNo].Clone();
+        // item being bought with high price
+        if(itemNo == highItem){
+            item.price = item.price + item.price * HIGH_RATE;
+        }
+        // // item being bought with low price
+        // else if(itemNo == lowItem){
+        //     item.price = item.price - item.price * LOW_RATE;
+        // }
         if(item.price < shop.lowestItemPrice)
             shop.lowestItemPrice = item.price;
 
-        item.sprite->setScale({0.10f, 0.10f});
         shop.items.push_back(item);
+        
+        //shop.items.push_back(ALL_ITEMS[rand() % ALL_ITEMS.size()].Clone());
+        shop.items[i].sprite->setScale({0.10f,0.10f});
     }
 
 
@@ -400,44 +439,9 @@ Shop SetUpShop(int highItem, int lowItem){
 }
 
 
-// modify the price modifier in the main item list each round
-void ModifyPrices(int highItem, int lowItem){
-    for (int i = 0; i < ALL_ITEMS.size(); i++)
-    {
-        float modifier = GetRandomIntInRange(1, 8) * 0.1f;
-        if(i == highItem){
-            ALL_ITEMS[i].priceModifier = modifier;
-        }
-        else if (i == lowItem)
-        {
-            ALL_ITEMS[i].priceModifier = -modifier;
-        }
-        else{
-            if(GetRandomIntInRange(0, 1) == 0){
-                ALL_ITEMS[i].priceModifier = modifier;
-            }
-            else{
-                ALL_ITEMS[i].priceModifier = -modifier;
-            }
-        }
-        std::cout << ALL_ITEMS[i].name.toAnsiString() + " " + std::to_string(ALL_ITEMS[i].priceModifier) << std::endl;
-    }
-}
-
-
-// modify the prices of items in store and inventory
-void ModifyItemListPrice(std::vector<Item> &items){
-    for(int i = 0; i < items.size(); i++){
-        items[i].price = ALL_ITEMS[items[i].id].price + ALL_ITEMS[items[i].id].price * ALL_ITEMS[items[i].id].priceModifier;
-        std::cout << items[i].name.toAnsiString() + " " + std::to_string(items[i].price) << std::endl;
-    }
-}
-
-
 // get the item being clicked on
-Item InteractWith(std::vector<Item> &items, sf::Sprite mousePos){
+Item InteractWith(std::vector<Item> items, sf::Sprite mousePos){
     Item empty;
-    empty.sprite = nullptr;
 
     for(int i = 0; i < items.size(); i++){
         if (items[i].sprite->getGlobalBounds().findIntersection(mousePos.getGlobalBounds())){
@@ -446,13 +450,4 @@ Item InteractWith(std::vector<Item> &items, sf::Sprite mousePos){
     }
 
     return empty;
-}
-
-
-int GetRandomIntInRange(int min, int max) {
-    static std::random_device rd;  // only used once to initialize (seed) engine
-    static std::mt19937 gen(rd()); // static to keep the same generator between calls
-
-    std::uniform_int_distribution<> dist(min, max);
-    return dist(gen);
 }
