@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <random>
 #include <numeric>
+#include <string>
 
 #define ASSETS "../assets/"
 
@@ -87,7 +88,24 @@ int main(){
     hoverText.setCharacterSize(40);
     hoverText.setStyle(sf::Text::Bold);
     hoverText.setFillColor(sf::Color::Black);
-    hoverText.setPosition({200.f,650.f});
+    hoverText.setPosition({180.f,660.f});
+
+
+    // text for stores left
+    sf::Text storesLeftText(font,"");
+    storesLeftText.setCharacterSize(35);
+    storesLeftText.setStyle(sf::Text::Bold);
+    storesLeftText.setFillColor(sf::Color::Black);
+    storesLeftText.setPosition({500.f, 15.f});
+    int storesCount = 10;
+
+    //text for number of items the store will buy
+    sf::Text willBuyText(font, "Will buy \n");
+    willBuyText.setCharacterSize(25);
+    willBuyText.setStyle(sf::Text::Bold);
+    willBuyText.setFillColor(sf::Color::Black);
+    willBuyText.setPosition({450.f, 325.f});
+    int willBuy = 5;
 
     // game clear and game over texts
     sf::Text GameClearText(font,"GAME CLEAR");
@@ -140,11 +158,11 @@ int main(){
     // Set up first shop
     Shop currentShop = SetUpShop(-1, -1);
     itemHigh = ALL_ITEMS[currentShop.forecastHigh].Clone();
-    itemHigh.sprite->setScale({0.10f,0.10f});
-    itemHigh.sprite->setPosition({500.f, 100.f});
+    itemHigh.sprite->setScale({0.07f,0.07f});
+    itemHigh.sprite->setPosition({1080.f, 0.f});
     itemLow = ALL_ITEMS[currentShop.forecastLow].Clone();
-    itemLow.sprite->setScale({0.10f,0.10f});
-    itemLow.sprite->setPosition({600.f, 100.f});
+    itemLow.sprite->setScale({0.07f,0.07f});
+    itemLow.sprite->setPosition({1180.f, 0.f});
 
     // MAIN LOOP
     while (window.isOpen())
@@ -173,9 +191,9 @@ int main(){
                     }
                 }
                 // sell item from inventory
-                else{
+                else if (willBuy > 0){
                     itemClicked = InteractWith(inventory,cursorSprite);
-                
+                    willBuy --;
                     if(itemClicked.sprite != nullptr){
                         if(itemClicked.tag == 'i'){
                             for(int i = 0; i < inventory.size(); i++){
@@ -202,16 +220,18 @@ int main(){
                     ModifyItemListPrice(currentShop.items);
                     std::cout << "inventory prices:" << std::endl;
                     ModifyItemListPrice(inventory);
+                    
+                    willBuy = rand() % 4 + 4;
 
                     itemHigh = ALL_ITEMS[currentShop.forecastHigh].Clone();
-                    itemHigh.sprite->setScale({0.10f,0.10f});
-                    itemHigh.sprite->setPosition({500.f, 100.f});
-
+                    itemHigh.sprite->setScale({0.07f,0.07f});
+                    itemHigh.sprite->setPosition({1080.f, 0.f});
                     itemLow = ALL_ITEMS[currentShop.forecastLow].Clone();
-                    itemLow.sprite->setScale({0.10f,0.10f});
-                    itemLow.sprite->setPosition({600.f, 100.f});
+                    itemLow.sprite->setScale({0.07f,0.07f});
+                    itemLow.sprite->setPosition({1180.f, 0.f});
 
                     scene++;
+                    storesCount--;
                     madeTransaction = false;
                     break;
                 }
@@ -222,7 +242,7 @@ int main(){
         if(money >= moneyGoal){
             gameClear = true;
         }
-        else if(money < currentShop.lowestItemPrice && inventory.size() == 0){
+        else if((money < currentShop.lowestItemPrice && inventory.size() == 0) || storesCount < 0){
             gameOver = true;
         }
         
@@ -269,6 +289,10 @@ int main(){
             window.draw(*itemLow.sprite);
 
         window.draw(hoverText);
+        storesLeftText.setString("Stores Left: " + std::to_string(storesCount));
+        window.draw(storesLeftText);
+        willBuyText.setString("Will Buy\n" + std::to_string(willBuy) + " Items");
+        window.draw(willBuyText);
         window.draw(moneyText);
         if(madeTransaction)
             window.draw(rightArrow);
@@ -292,6 +316,7 @@ std::vector<Item> SetUpItems() {
     Bow.texture = new sf::Texture();
     Bow.texture->loadFromFile("../assets/bow.png");
     Bow.sprite = new sf::Sprite(*Bow.texture);
+    Bow.sprite->setOrigin(sf::Vector2f(0.f, 5.f));
     Bow.name = "Bow";
     Bow.id = 0;
     Bow.price = 10;
@@ -322,11 +347,22 @@ std::vector<Item> SetUpItems() {
     Sword.texture = new sf::Texture();
     Sword.texture->loadFromFile("../assets/psword.png");
     Sword.sprite = new sf::Sprite(*Sword.texture);
-    Sword.name = "Paolo Sword";
+    Sword.name = "Paola Sword";
     Sword.id = 3;
     Sword.price = 100;
     Sword.tag = 's';
     items.push_back(Sword);
+
+    Item Shield;
+    Shield.texture = new sf::Texture();
+    Shield.texture -> loadFromFile("../assets/pshield.png");
+    Shield.sprite = new sf::Sprite(*Shield.texture);
+    Shield.sprite->setOrigin(sf::Vector2f(0.f, 5.f));
+    Shield.name = "Paolo Shield";
+    Shield.id = 4;
+    Shield.price = 80;
+    Shield.tag = 's';
+    items.push_back(Shield);
     
     return items;
 }
@@ -339,7 +375,7 @@ Shop SetUpShop(int highItem, int lowItem){
     // SHOP BACKGROUND
     shop.texture = new sf::Texture();
 
-    int bg = rand() % 3;
+    int bg = rand() % 5;
     switch(bg){
         case 0:
             shop.texture->loadFromFile("../assets/background.png");
@@ -349,6 +385,12 @@ Shop SetUpShop(int highItem, int lowItem){
             break;
         case 2:
             shop.texture->loadFromFile("../assets/background2.png");
+            break;
+        case 3:
+            shop.texture->loadFromFile("../assets/background3.png");
+            break;
+        case 4:
+            shop.texture->loadFromFile("../assets/background4.png");
             break;
     }
     //shop.texture->loadFromFile("../assets/background.png");
@@ -368,7 +410,7 @@ Shop SetUpShop(int highItem, int lowItem){
     shop.lowestItemPrice = 5000;
     // add random items to the vector
     // 3 ITEMS, INCRESE TO 4 LATER
-    for(int i = 0; i < 3 && i < indices.size(); i++){
+    for(int i = 0; i < 4 && i < indices.size(); i++){
         int itemNo = indices[i];
         Item item = ALL_ITEMS[itemNo].Clone();
 
