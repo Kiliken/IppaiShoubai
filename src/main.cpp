@@ -58,6 +58,7 @@ Item InteractWith(std::vector<Item> &items, sf::Sprite mousePos); // mouse inter
 int GetRandomIntInRange(int min, int max);
 void ModifyPrices(int highItem, int lowItem);
 void ModifyItemListPrice(std::vector<Item> &items);
+void FindLowestPriceItem(Shop &shop);
 
 
 
@@ -218,6 +219,7 @@ int main(){
                     ModifyPrices(currentShop.currentHigh, currentShop.currentLow);
                     std::cout << "shop prices:" << std::endl;
                     ModifyItemListPrice(currentShop.items);
+                    FindLowestPriceItem(currentShop);
                     std::cout << "inventory prices:" << std::endl;
                     ModifyItemListPrice(inventory);
                     
@@ -231,7 +233,7 @@ int main(){
                     itemLow.sprite->setPosition({1180.f, 0.f});
 
                     scene++;
-                    storesCount--;
+                    storesCount = std::max(storesCount - 1, 0);
                     madeTransaction = false;
                     break;
                 }
@@ -242,7 +244,7 @@ int main(){
         if(money >= moneyGoal){
             gameClear = true;
         }
-        else if((money < currentShop.lowestItemPrice && inventory.size() == 0) || storesCount < 0){
+        else if((money < currentShop.lowestItemPrice && inventory.size() == 0) || storesCount <= 0){
             gameOver = true;
         }
         
@@ -472,6 +474,17 @@ void ModifyItemListPrice(std::vector<Item> &items){
     for(int i = 0; i < items.size(); i++){
         items[i].price = ALL_ITEMS[items[i].id].price + ALL_ITEMS[items[i].id].price * ALL_ITEMS[items[i].id].priceModifier;
         std::cout << items[i].name.toAnsiString() + " " + std::to_string(items[i].price) << std::endl;
+    }
+}
+
+
+void FindLowestPriceItem(Shop &shop){
+    shop.lowestItemPrice = 5000;
+    // add random items to the vector
+    // 3 ITEMS, INCRESE TO 4 LATER
+    for(int i = 0; i < shop.items.size(); i++){
+        if(shop.items[i].price < shop.lowestItemPrice)
+            shop.lowestItemPrice = shop.items[i].price;
     }
 }
 
