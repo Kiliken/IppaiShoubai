@@ -194,12 +194,14 @@ int main(){
                 // sell item from inventory
                 else if (willBuy > 0){
                     itemClicked = InteractWith(inventory,cursorSprite);
-                    willBuy --;
+                    
                     if(itemClicked.sprite != nullptr){
+                        
                         if(itemClicked.tag == 'i'){
                             for(int i = 0; i < inventory.size(); i++){
                                 if(itemClicked.sprite->getPosition() == inventory[i].sprite->getPosition()){
                                     money += itemClicked.price;
+                                    willBuy --;
                                     
                                     moneyText.setString(std::to_string(money) + "$");
                                     inventory.erase(inventory.begin() + i);

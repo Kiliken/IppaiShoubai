@@ -10,5 +10,13 @@ SET defines=/D RELEASE
 
 cl /std:c++17 /EHsc /Fe"%cd%/build/Main.exe" /Fo"%cd%/build/" %includes% %defines% src/main.cpp %links%
 
-cd build
-Main.exe
+if %errorlevel% neq 0 (
+		color 0c
+		echo "Build failed!"
+) else (
+		color 0a
+		echo "Build succeeded. Launching game..."
+		cd build
+		Main.exe
+)
+
