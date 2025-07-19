@@ -7,7 +7,7 @@
 #include <numeric>
 #include <string>
 
-#define ASSETS "../assets/"
+#define ASSETS(file) ("../assets/" ## file)
 
 // Item struct used for each item in the game
 struct Item {
@@ -77,7 +77,7 @@ int main(){
     window.setFramerateLimit(60);
 
     // money text
-    const sf::Font font("../assets/arial.ttf");
+    const sf::Font font(ASSETS("arial.ttf"));
     sf::Text moneyText(font, std::to_string(money) + "$");
     moneyText.setCharacterSize(30);
     moneyText.setStyle(sf::Text::Bold);
@@ -121,13 +121,13 @@ int main(){
     GameOverText.setPosition({350.f,300.f});
 
     // cursor
-    const sf::Texture cursorText("../assets/cursor.png");
+    const sf::Texture cursorText(ASSETS("cursor.png"));
     sf::Sprite cursorSprite(cursorText);
     cursorSprite.setOrigin({cursorText.getSize().x / 2.f,cursorText.getSize().y/ 2.f});
     cursorSprite.setScale({0.06f,0.06f});
 
     // arrow for switching shops
-    const sf::Texture arrowsText("../assets/arrow.png");
+    const sf::Texture arrowsText(ASSETS("arrow.png"));
     sf::Sprite rightArrow(arrowsText);
     rightArrow.setOrigin({arrowsText.getSize().x / 2.f,arrowsText.getSize().y/ 2.f});
     rightArrow.setScale({0.25f,0.25f});
@@ -318,18 +318,18 @@ std::vector<Item> SetUpItems() {
 
     Item Bow;
     Bow.texture = new sf::Texture();
-    Bow.texture->loadFromFile("../assets/bow.png");
+    Bow.texture->loadFromFile(ASSETS("bow.png"));
     Bow.sprite = new sf::Sprite(*Bow.texture);
     Bow.sprite->setOrigin(sf::Vector2f(0.f, 5.f));
     Bow.name = "Bow";
     Bow.id = 0;
-    Bow.price = 10;
+    Bow.price = 40;
     Bow.tag = 's';
     items.push_back(Bow);
 
     Item HpPotion;
     HpPotion.texture = new sf::Texture();
-    HpPotion.texture->loadFromFile("../assets/hppotion.png");
+    HpPotion.texture->loadFromFile(ASSETS("hppotion.png"));
     HpPotion.sprite = new sf::Sprite(*HpPotion.texture);
     HpPotion.name = "Heal Potion";
     HpPotion.id = 1;
@@ -339,32 +339,32 @@ std::vector<Item> SetUpItems() {
 
     Item ManaPotion;
     ManaPotion.texture = new sf::Texture();
-    ManaPotion.texture->loadFromFile("../assets/manapotion.png");
+    ManaPotion.texture->loadFromFile(ASSETS("manapotion.png"));
     ManaPotion.sprite = new sf::Sprite(*ManaPotion.texture);
     ManaPotion.name = "Mana Potion";
     ManaPotion.id = 2;
-    ManaPotion.price = 40;
+    ManaPotion.price = 30;
     ManaPotion.tag = 's';
     items.push_back(ManaPotion);
     
     Item Sword;
     Sword.texture = new sf::Texture();
-    Sword.texture->loadFromFile("../assets/psword.png");
+    Sword.texture->loadFromFile(ASSETS("psword.png"));
     Sword.sprite = new sf::Sprite(*Sword.texture);
     Sword.name = "Paola Sword";
     Sword.id = 3;
-    Sword.price = 100;
+    Sword.price = 90;
     Sword.tag = 's';
     items.push_back(Sword);
 
     Item Shield;
     Shield.texture = new sf::Texture();
-    Shield.texture -> loadFromFile("../assets/pshield.png");
+    Shield.texture -> loadFromFile(ASSETS("pshield.png"));
     Shield.sprite = new sf::Sprite(*Shield.texture);
     Shield.sprite->setOrigin(sf::Vector2f(0.f, 5.f));
     Shield.name = "Paolo Shield";
     Shield.id = 4;
-    Shield.price = 80;
+    Shield.price = 70;
     Shield.tag = 's';
     items.push_back(Shield);
     
@@ -382,19 +382,19 @@ Shop SetUpShop(int highItem, int lowItem){
     int bg = rand() % 5;
     switch(bg){
         case 0:
-            shop.texture->loadFromFile("../assets/background.png");
+            shop.texture->loadFromFile(ASSETS("background.png"));
             break;
         case 1:
-            shop.texture->loadFromFile("../assets/background1.png");
+            shop.texture->loadFromFile(ASSETS("background1.png"));
             break;
         case 2:
-            shop.texture->loadFromFile("../assets/background2.png");
+            shop.texture->loadFromFile(ASSETS("background2.png"));
             break;
         case 3:
-            shop.texture->loadFromFile("../assets/background3.png");
+            shop.texture->loadFromFile(ASSETS("background3.png"));
             break;
         case 4:
-            shop.texture->loadFromFile("../assets/background4.png");
+            shop.texture->loadFromFile(ASSETS("background4.png"));
             break;
     }
     //shop.texture->loadFromFile("../assets/background.png");
@@ -450,7 +450,7 @@ Shop SetUpShop(int highItem, int lowItem){
 void ModifyPrices(int highItem, int lowItem){
     for (int i = 0; i < ALL_ITEMS.size(); i++)
     {
-        float modifier = GetRandomIntInRange(1, 8) * 0.1f;
+        float modifier = GetRandomIntInRange(1, 7) * 0.1f;
         if(i == highItem){
             ALL_ITEMS[i].priceModifier = modifier;
         }
