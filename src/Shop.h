@@ -1,4 +1,4 @@
-#include <SFML/Graphics.hpp>
+#pragma once
 #include "Item.h"
 
 // Shop class for randomly generating new shops
